@@ -1,34 +1,26 @@
 # AI Usage Disclosure
 
-<!--
-Fill in this file before you submit. Submissions without it are not graded.
-If you used no AI tools, delete everything below and write only:
-No AI tools were used.
--->
-
 ## Tools used
+Claude (Anthropic), web chat interface.
 
-- Tool and version (e.g. ChatGPT GPT-5, Claude, GitHub Copilot):
+## What I used it for
+- Understanding the assignment requirements and planning the order of work.
+- Writing and debugging the code in the four modules.
+- Fixing a syntax error in query.py that appeared after pasting the code.
 
-## Conversation links
+## Parts of the code that were AI-generated or substantially AI-assisted
+- validator.py: load_airports, validate_row, to_record
+- csv_loader.py: parse_files
+- query.py: run_query, run_queries and helper functions
+- flight_parser.py: main() and its helper functions (argparse setup, logging, JSON output)
 
-- Link 1:
-- Link 2:
-
-## What I used them for
-
-- e.g. explaining argparse, debugging the date validation, generating test data
-
-## Which parts of the code were AI-generated or substantially AI-assisted
-
-| File | Function or part | How (generated / modified / explained) |
-| --- | --- | --- |
-|  |  |  |
+## Conversation link
+https://claude.ai/share/ed863390-d31b-467b-9e2d-efa0408a074d
 
 ## Key prompts
-
-1.
-2.
+- I pasted the full assignment text and asked Claude to work through it step by step with me.
+- I pasted each starter file and asked Claude to fill in only the required code, without changing existing comments or adding new ones.
+- I pasted the public test output and asked Claude to fix the failing parts.
 
 ## What I changed or verified myself
-
+I ran the public test script after each module and fixed the problems it reported. All public tests pass. I set the student constants myself.

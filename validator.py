@@ -1,5 +1,23 @@
 """Row validation: airport list loading, single-row checks, record building."""
 
+import math
+import re
+from datetime import datetime
+
+_ID_RE = re.compile(r"[A-Za-z0-9]{2,8}")
+_AIRPORT_RE = re.compile(r"[A-Z]{3}")
+_DATETIME_RE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}")
+_DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+
+
+def _parse_datetime(text: str) -> datetime | None:
+    if not _DATETIME_RE.fullmatch(text):
+        return None
+    try:
+        return datetime.strptime(text, _DATETIME_FORMAT)
+    except ValueError:
+        return None
+
 
 def load_airports(path: str) -> set[str]:
     """Read an airport list file and return the set of codes.
@@ -7,7 +25,14 @@ def load_airports(path: str) -> set[str]:
     One code per line. Strip whitespace; skip blank lines and lines
     starting with '#'.
     """
-    raise NotImplementedError
+    airports = set()
+    with open(path, encoding="utf-8-sig") as handle:
+        for line in handle:
+            code = line.strip()
+            if not code or code.startswith("#"):
+                continue
+            airports.add(code)
+    return airports
 
 
 def validate_row(fields: list[str], airports: set[str]) -> str | None:
@@ -17,7 +42,43 @@ def validate_row(fields: list[str], airports: set[str]) -> str | None:
     FIRST failing check (checks 1-11 in the specification, in order).
     Does not check for duplicates.
     """
-    raise NotImplementedError
+    if len(fields) != 6:
+        return "WRONG_FIELD_COUNT"
+
+    cleaned = [field.strip() for field in fields]
+    if any(not field for field in cleaned):
+        return "MISSING_FIELD"
+
+    flight_id, origin, destination, departure, arrival, price = cleaned
+
+    if not _ID_RE.fullmatch(flight_id):
+        return "INVALID_FLIGHT_ID"
+    if not _AIRPORT_RE.fullmatch(origin) or origin not in airports:
+        return "INVALID_ORIGIN"
+    if not _AIRPORT_RE.fullmatch(destination) or destination not in airports:
+        return "INVALID_DESTINATION"
+    if origin == destination:
+        return "SAME_ORIGIN_DESTINATION"
+
+    departure_time = _parse_datetime(departure)
+    if departure_time is None:
+        return "INVALID_DEPARTURE"
+    arrival_time = _parse_datetime(arrival)
+    if arrival_time is None:
+        return "INVALID_ARRIVAL"
+    if arrival_time <= departure_time:
+        return "ARRIVAL_NOT_AFTER_DEPARTURE"
+
+    try:
+        price_value = float(price)
+    except ValueError:
+        return "INVALID_PRICE"
+    if not math.isfinite(price_value):
+        return "INVALID_PRICE"
+    if price_value <= 0:
+        return "NON_POSITIVE_PRICE"
+
+    return None
 
 
 def to_record(fields: list[str]) -> dict:
@@ -26,4 +87,14 @@ def to_record(fields: list[str]) -> dict:
     Keys: flight_id, origin, destination, departure_datetime,
     arrival_datetime (stripped strings) and price (float).
     """
-    raise NotImplementedError
+    flight_id, origin, destination, departure, arrival, price = (
+        field.strip() for field in fields
+    )
+    return {
+        "flight_id": flight_id,
+        "origin": origin,
+        "destination": destination,
+        "departure_datetime": departure,
+        "arrival_datetime": arrival,
+        "price": float(price),
+    }
